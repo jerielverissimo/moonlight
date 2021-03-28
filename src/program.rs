@@ -8,7 +8,7 @@ use std::{
     thread,
 };
 
-use crate::{render, Channel};
+use crate::{receive_inputs, render, Channel};
 
 static mut IS_RUNNING: Running = Running::Keep;
 static mut RENDER_SENDER: Option<Mutex<Sender<ShouldRender>>> = None;
@@ -47,15 +47,13 @@ where
     }
 
     let mut channel = Channel::new();
-    let mut input_sender = channel.sender();
+    let input_sender = channel.sender();
 
     let messages = Rc::new(RefCell::new(Vec::new()));
 
     // input thread
     thread::spawn(move || {
-        if let Some(msg) = input("") {
-            input_sender.send(msg);
-        }
+        receive_inputs(input, input_sender);
     });
 
     let mut callback = move || {
@@ -69,8 +67,8 @@ where
         render(&next_frame);
     };
 
-    // main loop, update states when MSG is recieved,
-    // draw when ShouldRender is recieved
+    // main loop, update states when MSG is received,
+    // draw when ShouldRender is received
     for _ in render_receiver.iter() {
         callback();
 
