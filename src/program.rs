@@ -1,5 +1,6 @@
 use std::{
     cell::RefCell,
+    io::stdin,
     rc::Rc,
     sync::{
         mpsc::{channel, Sender},
@@ -77,40 +78,5 @@ where
                 break;
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn should_call_update_fun() {
-        // arrange
-        let mut spy = Vec::new();
-
-        struct Dummy(&'static str);
-
-        enum DummyMsg {
-            Update,
-        }
-
-        let update = |_msg: DummyMsg, m: &mut Dummy| {
-            m.0 = "updated";
-            spy.push(Dummy(m.0));
-            super::quit();
-        };
-
-        let model = Dummy("dummy");
-
-        let view = |m: &Dummy| m.0.to_string();
-
-        let input = |_io: &str| Some(DummyMsg::Update);
-
-        // act
-        program(model, update, view, input);
-
-        // assert
-        assert_eq!(spy[0].0, "updated");
     }
 }
