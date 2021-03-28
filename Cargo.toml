@@ -2,9 +2,12 @@
 name = "moonlight"
 version = "0.1.0"
 authors = ["Jeriel Baptista Verissimo <jeriel.verissimo@protonmail.com>"]
+license = "MIT"
 edition = "2018"
 publish = true
+
 description = "A terminal user interface crate"
 respository = "https://github.com/jerielverissimo/moonlight.git"
+readme = "README.md"
 
 [dependencies]
