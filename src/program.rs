@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    io::stdin,
+    io::{stdin, stdout},
     rc::Rc,
     sync::{
         mpsc::{channel, Sender},
@@ -8,6 +8,8 @@ use std::{
     },
     thread,
 };
+
+use termion::{event::Key, raw::IntoRawMode};
 
 use crate::{receive_inputs, render, Channel};
 
@@ -23,7 +25,6 @@ enum Running {
 
 pub fn quit() {
     unsafe {
-        println!("exiting");
         IS_RUNNING = Running::Done;
     }
 }
@@ -40,7 +41,7 @@ where
     U: FnMut(MSG, &mut M),
     MSG: 'static + Send,
     V: Fn(&M) -> String,
-    I: Fn(&str) -> Option<MSG> + Send + 'static,
+    I: Fn(Key) -> Option<MSG> + Send + 'static,
 {
     let (tx, render_receiver) = channel();
     unsafe {
@@ -50,7 +51,13 @@ where
     let mut channel = Channel::new();
     let input_sender = channel.sender();
 
+    let _stdout = stdout().into_raw_mode().unwrap();
+
     let messages = Rc::new(RefCell::new(Vec::new()));
+
+    // Render initial view
+    let first_frame = view(&model);
+    render(&first_frame);
 
     // input thread
     thread::spawn(move || {
