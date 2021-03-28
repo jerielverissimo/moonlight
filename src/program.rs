@@ -11,7 +11,11 @@ use std::{
 
 use termion::{event::Key, raw::IntoRawMode};
 
-use crate::{receive_inputs, render, Channel};
+use crate::{
+    receive_inputs,
+    render::{hide_cursor, render, restore_terminal, show_cursor},
+    Channel,
+};
 
 static mut IS_RUNNING: Running = Running::Keep;
 static mut RENDER_SENDER: Option<Mutex<Sender<ShouldRender>>> = None;
@@ -51,7 +55,9 @@ where
     let mut channel = Channel::new();
     let input_sender = channel.sender();
 
+    // change terminal mode
     let _stdout = stdout().into_raw_mode().unwrap();
+    hide_cursor();
 
     let messages = Rc::new(RefCell::new(Vec::new()));
 
@@ -86,4 +92,7 @@ where
             }
         }
     }
+
+    show_cursor();
+    restore_terminal();
 }
