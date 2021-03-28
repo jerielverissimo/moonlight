@@ -5,6 +5,7 @@ use std::{
         mpsc::{channel, Sender},
         Mutex,
     },
+    thread,
 };
 
 use crate::{render, Channel};
@@ -36,8 +37,9 @@ pub(crate) fn schedule_render() {
 pub fn program<M, U, MSG, V, I>(mut model: M, mut update: U, view: V, input: I)
 where
     U: FnMut(MSG, &mut M),
+    MSG: 'static + Send,
     V: Fn(&M) -> String,
-    I: Fn(&str) -> Option<MSG>,
+    I: Fn(&str) -> Option<MSG> + Send + 'static,
 {
     let (tx, render_receiver) = channel();
     unsafe {
@@ -49,9 +51,12 @@ where
 
     let messages = Rc::new(RefCell::new(Vec::new()));
 
-    if let Some(msg) = input("") {
-        input_sender.send(msg);
-    }
+    // input thread
+    thread::spawn(move || {
+        if let Some(msg) = input("") {
+            input_sender.send(msg);
+        }
+    });
 
     let mut callback = move || {
         let mut borrowed = messages.borrow_mut();
