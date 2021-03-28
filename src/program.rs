@@ -1,10 +1,18 @@
-use std::{cell::RefCell, rc::Rc, sync::mpsc::channel};
+use std::{
+    cell::RefCell,
+    rc::Rc,
+    sync::{
+        mpsc::{channel, Sender},
+        Mutex,
+    },
+};
 
-use crate::render;
+use crate::{render, Channel};
 
 static mut IS_RUNNING: Running = Running::Keep;
+static mut RENDER_SENDER: Option<Mutex<Sender<ShouldRender>>> = None;
 
-struct ShouldRender;
+struct ShouldRender; // dummy msg
 
 enum Running {
     Keep,
@@ -18,25 +26,36 @@ pub fn quit() {
     }
 }
 
+pub(crate) fn schedule_render() {
+    unsafe {
+        let tx = RENDER_SENDER.as_ref().unwrap().lock().unwrap().clone();
+        tx.send(ShouldRender).ok();
+    }
+}
+
 pub fn program<M, U, MSG, V, I>(mut model: M, mut update: U, view: V, input: I)
 where
     U: FnMut(MSG, &mut M),
     V: Fn(&M) -> String,
     I: Fn(&str) -> Option<MSG>,
 {
-    let (tx, rx) = channel();
-    let (input_tx, input_rx) = channel();
+    let (tx, render_receiver) = channel();
+    unsafe {
+        RENDER_SENDER = Some(Mutex::new(tx));
+    }
+
+    let mut channel = Channel::new();
+    let mut input_sender = channel.sender();
 
     let messages = Rc::new(RefCell::new(Vec::new()));
 
     if let Some(msg) = input("") {
-        input_tx.send(msg).ok();
-        tx.send(ShouldRender).ok();
+        input_sender.send(msg);
     }
 
     let mut callback = move || {
         let mut borrowed = messages.borrow_mut();
-        borrowed.extend(input_rx.try_iter());
+        borrowed.extend(channel.rx.try_iter());
         for msg in borrowed.drain(..) {
             update(msg, &mut model);
         }
@@ -45,7 +64,9 @@ where
         render(&next_frame);
     };
 
-    for _ in rx.iter() {
+    // main loop, update states when MSG is recieved,
+    // draw when ShouldRender is recieved
+    for _ in render_receiver.iter() {
         callback();
 
         unsafe {

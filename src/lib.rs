@@ -1,6 +1,8 @@
+pub mod channels;
 pub mod program;
 pub mod render;
 
+pub use channels::*;
 pub use program::*;
 pub(crate) use render::*;
 
