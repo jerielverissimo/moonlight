@@ -11,3 +11,4 @@ respository = "https://github.com/jerielverissimo/moonlight.git"
 readme = "README.md"
 
 [dependencies]
+termion = "1.5.6"
