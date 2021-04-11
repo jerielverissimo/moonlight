@@ -1,6 +1,6 @@
 use std::{
     cell::RefCell,
-    io::{stdin, stdout},
+    io::stdout,
     rc::Rc,
     sync::{
         mpsc::{channel, Sender},
@@ -40,12 +40,19 @@ pub(crate) fn schedule_render() {
     }
 }
 
-pub fn program<M, U, MSG, V, I>(mut model: M, mut update: U, view: V, input: I)
+pub type Sub<M, MSG> = Box<dyn Fn(&M) -> MSG + Send>;
+pub type Cmd<MSG> = Box<dyn Fn() -> MSG + Send>;
+pub type BatchCmd<MSG> = Vec<Cmd<MSG>>;
+
+pub fn program<M, U, MSG, V, I, S, C>(mut model: M, mut update: U, view: V, input: I, subs: Vec<S>)
 where
-    U: FnMut(MSG, &mut M),
-    MSG: 'static + Send,
+    M: 'static + Send + Sync + Clone, // FIXME: remove clone necessity
+    U: FnMut(MSG, &mut M) -> Vec<C> + 'static,
+    MSG: 'static + Send + Sync,
     V: Fn(&M) -> String,
     I: Fn(Key) -> Option<MSG> + Send + 'static,
+    S: Fn(&M) -> MSG + Send + 'static,
+    C: Fn() -> MSG + Send + 'static,
 {
     let (tx, render_receiver) = channel();
     unsafe {
@@ -70,11 +77,35 @@ where
         receive_inputs(input, input_sender);
     });
 
+    // For each sub a new thread is created and executed infinitely, this makes sense?
+    // TODO: maybe a model of pub/sub?
+    // TODO: what happens when we have a lot subs?
+    // TODO: how to unsubscribe?
+    {
+        for sub in subs {
+            let model = model.clone(); // FIXME: find a better way to remove the clone!!!
+            let mut sub_sender = channel.sender();
+            thread::spawn(move || loop {
+                // TODO: discovery a better way to handle subs,
+                // and add a way to unsubscribe
+                sub_sender.send(sub(&model));
+            });
+        }
+    }
+
     let mut callback = move || {
         let mut borrowed = messages.borrow_mut();
         borrowed.extend(channel.rx.try_iter());
         for msg in borrowed.drain(..) {
-            update(msg, &mut model);
+            for cmd in update(msg, &mut model).drain(..) {
+                let mut cmd_sender = channel.sender();
+                thread::spawn(move || {
+                    let msg = cmd(); // TODO: process command concurrently, maybe async?
+                    cmd_sender.send(msg);
+                })
+                .join()
+                .expect("failed to join cmd thread");
+            }
         }
 
         let next_frame = view(&model);
