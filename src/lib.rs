@@ -4,9 +4,8 @@ pub mod program;
 pub mod render;
 
 pub use channels::*;
-pub use input::*;
+use input::*;
 pub use program::*;
-pub(crate) use render::*;
 
 #[cfg(test)]
 mod tests {
