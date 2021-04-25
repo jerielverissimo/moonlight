@@ -50,3 +50,14 @@ fn clear_lines(n: i32) {
         clear_line();
     }
 }
+
+// fullscreen switches to the altscreen and clears the terminal. The former
+// view can be restored with exit_fullscreen().
+pub fn fullscreen() {
+    print!("{}", ESC.to_owned() + "?1049h" + ESC + "H");
+}
+
+// exit_fullscreen exits the altscreen and returns the former terminal view
+pub fn exit_fullscreen() {
+    print!("{}", ESC.to_owned() + "?1049l");
+}

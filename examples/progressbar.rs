@@ -1,7 +1,23 @@
 use std::{thread, time::Duration};
 
-use moonlight::{quit, BatchCmd, Sub};
+use moonlight::{
+    quit,
+    render::{exit_fullscreen, fullscreen},
+    BatchCmd, Sub,
+};
 use termion::event::Key;
+
+pub fn ease_out_bounce(t: f64) -> f64 {
+    if t < 4. / 11.0 {
+        return (121. * t * t) / 16.0;
+    } else if t < 8. / 11.0 {
+        return (363. / 40.0 * t * t) - (99. / 10.0 * t) + 17. / 5.0;
+    } else if t < 9. / 10.0 {
+        return (4356. / 361.0 * t * t) - (35442. / 1805.0 * t) + 16061. / 1805.0;
+    } else {
+        return (54. / 5.0 * t * t) - (513. / 25.0 * t) + 268. / 25.0;
+    }
+}
 
 #[derive(Clone)]
 struct Model {
@@ -17,7 +33,7 @@ impl Model {
             Msg::Frame => {
                 if !self.loaded {
                     self.frames += 1;
-                    self.progress = self.frames as f64 / 120.;
+                    self.progress = ease_out_bounce(self.frames as f64 / 100.);
                     if self.progress > 1. {
                         self.progress = 1.;
                         self.loaded = true;
@@ -93,6 +109,7 @@ fn tick(_: &Model) -> Msg {
 }
 
 fn main() {
+    fullscreen();
     let model = Model {
         ticks: 10,
         frames: 0,
@@ -101,4 +118,5 @@ fn main() {
     };
     let subs: Vec<Sub<Model, Msg>> = vec![Box::new(tick), Box::new(frame)];
     moonlight::program(model, update, view, input, subs);
+    exit_fullscreen();
 }
