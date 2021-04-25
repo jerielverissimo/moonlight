@@ -1,4 +1,6 @@
 pub mod channels;
+pub mod color;
+pub mod components;
 pub mod input;
 pub mod program;
 pub mod render;
