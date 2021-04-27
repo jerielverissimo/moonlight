@@ -3,7 +3,7 @@ use std::{thread, time::Duration};
 use moonlight::{
     quit,
     render::{exit_fullscreen, fullscreen},
-    BatchCmd, Sub,
+    BatchCmd, Cmd, Sub,
 };
 use termion::event::Key;
 
@@ -108,15 +108,19 @@ fn tick(_: &Model) -> Msg {
     Msg::Tick
 }
 
-fn main() {
-    fullscreen();
+fn initialize() -> (Model, Option<Cmd<Msg>>) {
     let model = Model {
         ticks: 10,
         frames: 0,
         progress: 0.0,
         loaded: false,
     };
+    (model, None)
+}
+
+fn main() {
+    fullscreen();
     let subs: Vec<Sub<Model, Msg>> = vec![Box::new(tick), Box::new(frame)];
-    moonlight::program(model, update, view, input, subs);
+    moonlight::program(initialize, update, view, input, subs);
     exit_fullscreen();
 }

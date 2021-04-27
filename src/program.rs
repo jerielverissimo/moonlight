@@ -44,8 +44,14 @@ pub type Sub<M, MSG> = Box<dyn Fn(&M) -> MSG + Send>;
 pub type Cmd<MSG> = Box<dyn Fn() -> MSG + Send>;
 pub type BatchCmd<MSG> = Vec<Cmd<MSG>>;
 
-pub fn program<M, U, MSG, V, I, S, C>(mut model: M, mut update: U, view: V, input: I, subs: Vec<S>)
-where
+pub fn program<INI, M, U, MSG, V, I, S, C>(
+    init: INI,
+    mut update: U,
+    view: V,
+    input: I,
+    subs: Vec<S>,
+) where
+    INI: Fn() -> (M, Option<Cmd<MSG>>) + Send + 'static,
     M: 'static + Send + Sync + Clone, // FIXME: remove clone necessity
     U: FnMut(MSG, &mut M) -> Vec<C> + 'static,
     MSG: 'static + Send + Sync,
@@ -65,6 +71,19 @@ where
     // change terminal mode
     let _stdout = stdout().into_raw_mode().unwrap();
     hide_cursor();
+
+    // Initialize program
+    let (mut model, cmd) = init();
+
+    if let Some(cmd) = cmd {
+        let mut cmd_sender = channel.sender();
+        thread::spawn(move || {
+            let msg = cmd();
+            cmd_sender.send(msg);
+        })
+        .join()
+        .expect("failed to join cmd thread");
+    }
 
     let messages = Rc::new(RefCell::new(Vec::new()));
 

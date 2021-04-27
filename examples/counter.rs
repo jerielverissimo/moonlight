@@ -47,5 +47,6 @@ fn input(event: Key) -> Option<Msg> {
 
 fn main() {
     let subs: Vec<Sub<Model, Msg>> = Vec::new(); // type annotation to subs
-    moonlight::program(Model(0), update, view, input, subs);
+    let initialize = || (Model(0), None);
+    moonlight::program(initialize, update, view, input, subs);
 }

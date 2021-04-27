@@ -58,5 +58,5 @@ fn tick(_: &Model) -> Msg {
 
 fn main() {
     let subs: Vec<Sub<Model, Msg>> = vec![Box::new(tick)];
-    moonlight::program(Model(5), update, view, input, subs);
+    moonlight::program(|| (Model(5), None), update, view, input, subs);
 }

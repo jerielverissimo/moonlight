@@ -1,7 +1,7 @@
 use moonlight::{
     components::paginator::{self, PaginatorType},
     render::{exit_fullscreen, fullscreen},
-    BatchCmd,
+    BatchCmd, Cmd,
 };
 use moonlight::{quit, Sub};
 use termion::event::Key;
@@ -54,11 +54,15 @@ fn input(event: Key) -> Option<Msg> {
     }
 }
 
+fn initialize() -> (Model, Option<Cmd<Msg>>) {
+    let mut paginator = paginator::Model::new();
+    paginator.set_total_pages(4);
+    (Model { paginator }, None)
+}
+
 fn main() {
     fullscreen();
     let subs: Vec<Sub<Model, Msg>> = Vec::new(); // type annotation to subs
-    let mut paginator = paginator::Model::new();
-    paginator.set_total_pages(4);
-    moonlight::program(Model { paginator }, update, view, input, subs);
+    moonlight::program(initialize, update, view, input, subs);
     exit_fullscreen();
 }
