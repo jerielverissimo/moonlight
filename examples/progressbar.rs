@@ -1,11 +1,12 @@
+use std::io::Result;
 use std::{thread, time::Duration};
 
 use moonlight::{
+    input::InputEvent,
     quit,
-    render::{exit_fullscreen, fullscreen},
+    renderer::{exit_fullscreen, fullscreen},
     BatchCmd, Cmd, Sub,
 };
-use termion::event::Key;
 
 pub fn ease_out_bounce(t: f64) -> f64 {
     if t < 4. / 11.0 {
@@ -33,7 +34,8 @@ impl Model {
             Msg::Frame => {
                 if !self.loaded {
                     self.frames += 1;
-                    self.progress = ease_out_bounce(self.frames as f64 / 100.);
+                    //self.progress = ease_out_bounce(self.frames as f64 / 100.);
+                    self.progress = self.frames as f64 / 200.;
                     if self.progress > 1. {
                         self.progress = 1.;
                         self.loaded = true;
@@ -76,7 +78,7 @@ fn view(model: &Model) -> String {
     model.view()
 }
 
-fn input(event: Key) -> Option<Msg> {
+fn input(event: InputEvent) -> Option<Msg> {
     match event {
         _ => None,
     }
@@ -118,9 +120,10 @@ fn initialize() -> (Model, Option<Cmd<Msg>>) {
     (model, None)
 }
 
-fn main() {
+fn main() -> Result<()> {
     fullscreen();
     let subs: Vec<Sub<Model, Msg>> = vec![Box::new(tick), Box::new(frame)];
-    moonlight::program(initialize, update, view, input, subs);
+    moonlight::program(initialize, update, view, input, subs)?;
     exit_fullscreen();
+    Ok(())
 }

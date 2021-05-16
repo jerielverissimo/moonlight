@@ -1,10 +1,12 @@
+use std::io::Result;
+
 use moonlight::{
     components::paginator::{self, PaginatorType},
-    render::{exit_fullscreen, fullscreen},
+    input::{InputEvent, Key},
+    renderer::{exit_fullscreen, fullscreen},
     BatchCmd, Cmd,
 };
 use moonlight::{quit, Sub};
-use termion::event::Key;
 
 /// A simple paginator demo with dots and arabic style
 
@@ -47,10 +49,13 @@ fn view(model: &Model) -> String {
 
 /// Input is called when stdin input are received. The idea is that you inspect
 /// the event and returns an optional message.
-fn input(event: Key) -> Option<Msg> {
+fn input(event: InputEvent) -> Option<Msg> {
     match event {
-        Key::Char('q') => Some(Msg::Quit),
-        _ => Some(Msg::Input(event)),
+        InputEvent::Key(event) => match event {
+            Key::Char('q') => Some(Msg::Quit),
+            key => Some(Msg::Input(key)),
+        },
+        _ => None,
     }
 }
 
@@ -60,9 +65,10 @@ fn initialize() -> (Model, Option<Cmd<Msg>>) {
     (Model { paginator }, None)
 }
 
-fn main() {
+fn main() -> Result<()> {
     fullscreen();
     let subs: Vec<Sub<Model, Msg>> = Vec::new(); // type annotation to subs
-    moonlight::program(initialize, update, view, input, subs);
+    moonlight::program(initialize, update, view, input, subs)?;
     exit_fullscreen();
+    Ok(())
 }

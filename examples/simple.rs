@@ -1,7 +1,6 @@
-use std::{thread, time::Duration};
+use std::{io::Result, thread, time::Duration};
 
-use moonlight::{quit, BatchCmd, Sub};
-use termion::event::Key;
+use moonlight::{input::InputEvent, quit, BatchCmd, Sub};
 
 /// A simple program that counts down from 5 and then exits.
 
@@ -43,9 +42,12 @@ fn view(model: &Model) -> String {
 
 /// Input is called when stdin input are received. The idea is that you inspect
 /// the event and returns an optional message.
-fn input(event: Key) -> Option<Msg> {
+fn input(event: InputEvent) -> Option<Msg> {
     match event {
-        _ => Some(Msg::Key),
+        InputEvent::Key(key) => match key {
+            _ => Some(Msg::Key),
+        },
+        _ => None,
     }
 }
 
@@ -56,7 +58,7 @@ fn tick(_: &Model) -> Msg {
     Msg::Tick
 }
 
-fn main() {
+fn main() -> Result<()> {
     let subs: Vec<Sub<Model, Msg>> = vec![Box::new(tick)];
-    moonlight::program(|| (Model(5), None), update, view, input, subs);
+    moonlight::program(|| (Model(5), None), update, view, input, subs)
 }

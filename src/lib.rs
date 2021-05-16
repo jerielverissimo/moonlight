@@ -4,7 +4,7 @@ pub mod commands;
 pub mod components;
 pub mod input;
 pub mod program;
-pub mod render;
+pub mod renderer;
 
 pub use channels::*;
 use input::*;

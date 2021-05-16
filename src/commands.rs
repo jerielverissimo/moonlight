@@ -9,9 +9,16 @@ pub fn tick<MSG: 'static>(d: Duration, fun: impl Fn() -> MSG + Send + 'static) -
     })
 }
 
-pub fn map<I: 'static, O>(cmds: BatchCmd<I>) -> Vec<impl Fn() -> O + Send + 'static>
+pub fn map_batch<I: 'static, O>(cmds: BatchCmd<I>) -> Vec<impl Fn() -> O + Send + 'static>
 where
     O: From<I>,
 {
     cmds.into_iter().map(|f| move || O::from(f())).collect()
+}
+
+pub fn map<I: 'static + Sync, O>(cmd: Cmd<I>) -> impl Fn() -> O + Send + 'static
+where
+    O: From<I>,
+{
+    move || O::from(cmd())
 }

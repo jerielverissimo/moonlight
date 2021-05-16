@@ -1,7 +1,6 @@
 use termion::color;
-use termion::event::Key;
 
-use crate::color::convert_hex_rgb;
+use crate::{color::convert_hex_rgb, input::Key};
 
 /// paginator module provides a Moonlight module for calculating pagination and
 /// rendering pagination info. Note that this package does not render actual

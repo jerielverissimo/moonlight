@@ -1,6 +1,10 @@
-use moonlight::BatchCmd;
+use std::io::Result;
+
+use moonlight::{
+    input::{InputEvent, Key},
+    BatchCmd,
+};
 use moonlight::{quit, Sub};
-use termion::event::Key;
 
 /// A simple program that show a counter
 
@@ -36,17 +40,20 @@ fn view(model: &Model) -> String {
 
 /// Input is called when stdin input are received. The idea is that you inspect
 /// the event and returns an optional message.
-fn input(event: Key) -> Option<Msg> {
+fn input(event: InputEvent) -> Option<Msg> {
     match event {
-        Key::Char('q') => Some(Msg::Quit),
-        Key::Char('k') => Some(Msg::Increment),
-        Key::Char('j') => Some(Msg::Decrement),
+        InputEvent::Key(key) => match key {
+            Key::Char('q') => Some(Msg::Quit),
+            Key::Char('k') => Some(Msg::Increment),
+            Key::Char('j') => Some(Msg::Decrement),
+            _ => None,
+        },
         _ => None,
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     let subs: Vec<Sub<Model, Msg>> = Vec::new(); // type annotation to subs
     let initialize = || (Model(0), None);
-    moonlight::program(initialize, update, view, input, subs);
+    moonlight::program(initialize, update, view, input, subs)
 }
