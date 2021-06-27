@@ -1,34 +1,35 @@
 use std::{io::Result, thread, time::Duration};
 
-use moonlight::{input::InputEvent, quit, BatchCmd, Sub};
+use moonlight::{heartbeat::Heartbeat, input::InputEvent, BatchCmd};
 
 /// A simple program that counts down from 5 and then exits.
 
 /// A model can be more or less any type of data. It holds all the data for a
 /// program, so often it's a struct.
-#[derive(Clone)]
 struct Model(i32);
 
-/// Messages are events that we respond to in our Update function. This
+/// Messages are events that we respond to in our Reducer function. This
 /// particular one increment/decrement a counter
+#[derive(Clone)]
 enum Msg {
     Tick,
     Key,
 }
 
-/// Update is called when messages are received. The idea is that you inspect
+/// Reducer is called when messages are received. The idea is that you inspect
 /// the message and update the model.
-fn update(msg: Msg, model: &mut Model) -> BatchCmd<Msg> {
+fn reducer(model: &Model, msg: &Msg) -> (Model, BatchCmd<Msg>) {
+    let mut model = Model(model.0);
     match msg {
-        Msg::Key => quit(),
+        Msg::Key => Heartbeat::stop(),
         Msg::Tick => {
             model.0 -= 1;
             if model.0 <= 0 {
-                quit()
+                Heartbeat::stop()
             }
         }
     }
-    vec![]
+    (model, vec![])
 }
 
 /// View take data from the model and return a string which will be rendered
@@ -51,7 +52,7 @@ fn input(event: InputEvent) -> Option<Msg> {
     }
 }
 
-// This is a subscription which we setup in program(). It waits for one
+// This is a subscription which we setup on runtime. It waits for one
 // second, sends a tick, and then restart.
 fn tick(_: &Model) -> Msg {
     thread::sleep(Duration::from_secs(1));
@@ -59,6 +60,8 @@ fn tick(_: &Model) -> Msg {
 }
 
 fn main() -> Result<()> {
-    let subs: Vec<Sub<Model, Msg>> = vec![Box::new(tick)];
-    moonlight::program(|| (Model(5), None), update, view, input, subs)
+    let initialize = || (Model(5), None);
+    moonlight::Runtime::new(reducer, initialize, input, view)
+        .with_subscription(tick)
+        .run()
 }

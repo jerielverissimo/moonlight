@@ -2,7 +2,7 @@ use std::{thread::sleep, time::Duration};
 
 use crate::{BatchCmd, Cmd};
 
-pub fn tick<MSG: 'static>(d: Duration, fun: impl Fn() -> MSG + Send + 'static) -> Cmd<MSG> {
+pub fn tick<MSG: 'static>(d: Duration, fun: impl Fn() -> MSG + Send + Sync + 'static) -> Cmd<MSG> {
     Box::new(move || {
         sleep(d);
         return fun();

@@ -1,12 +1,12 @@
 use std::fs;
 use std::io::Result;
 
+use moonlight::heartbeat::Heartbeat;
 use moonlight::{
     components::viewport::{self, Message},
     input::{InputEvent, Key},
     BatchCmd, Cmd,
 };
-use moonlight::{quit, Sub};
 use unicode_width::UnicodeWidthStr;
 
 /// A simple program demonstrating the spinner component from the Moonlight
@@ -24,7 +24,7 @@ struct Model {
 
 impl Model {}
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 enum Msg {
     Viewport(viewport::Message),
     WindowResized(u16, u16),
@@ -37,10 +37,16 @@ impl From<viewport::Message> for Msg {
     }
 }
 
-fn update(msg: Msg, model: &mut Model) -> BatchCmd<Msg> {
+fn reducer(model: &Model, msg: &Msg) -> (Model, BatchCmd<Msg>) {
+    let mut model = Model {
+        viewport: model.viewport.clone(),
+        content: model.content.clone(),
+        ..*model
+    };
     match msg {
-        Msg::Quit => quit(),
+        Msg::Quit => Heartbeat::stop(),
         Msg::WindowResized(w, h) => {
+            let (w, h) = (*w, *h);
             let (w, h) = (w as isize, h as isize);
             let vertical_margins = HEADER_HEIGHT + FOOTER_HEIGHT;
 
@@ -64,7 +70,7 @@ fn update(msg: Msg, model: &mut Model) -> BatchCmd<Msg> {
         }
     }
 
-    vec![]
+    (model, vec![])
 }
 
 fn view(model: &Model) -> String {
@@ -124,6 +130,5 @@ fn initialize() -> (Model, Option<Cmd<Msg>>) {
 }
 
 fn main() -> Result<()> {
-    let subs: Vec<Sub<Model, Msg>> = Vec::new(); // type annotation to subs
-    moonlight::program(initialize, update, view, input, subs)
+    moonlight::Runtime::new(reducer, initialize, input, view).run()
 }

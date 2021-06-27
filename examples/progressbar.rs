@@ -1,12 +1,8 @@
 use std::io::Result;
 use std::{thread, time::Duration};
 
-use moonlight::{
-    input::InputEvent,
-    quit,
-    renderer::{exit_fullscreen, fullscreen},
-    BatchCmd, Cmd, Sub,
-};
+use moonlight::heartbeat::Heartbeat;
+use moonlight::{input::InputEvent, BatchCmd, Cmd};
 
 pub fn ease_out_bounce(t: f64) -> f64 {
     if t < 4. / 11.0 {
@@ -20,7 +16,6 @@ pub fn ease_out_bounce(t: f64) -> f64 {
     }
 }
 
-#[derive(Clone)]
 struct Model {
     loaded: bool,
     frames: i32,
@@ -29,29 +24,35 @@ struct Model {
 }
 
 impl Model {
-    fn update(&mut self, msg: Msg) {
-        match msg {
+    fn update(&self, msg: &Msg) -> Self {
+        let model = match msg {
             Msg::Frame => {
-                if !self.loaded {
-                    self.frames += 1;
-                    //self.progress = ease_out_bounce(self.frames as f64 / 100.);
-                    self.progress = self.frames as f64 / 200.;
-                    if self.progress > 1. {
-                        self.progress = 1.;
-                        self.loaded = true;
-                        self.ticks = 3;
+                let mut model = Model { ..*self }; // deep copy
+                if !model.loaded {
+                    model.frames += 1;
+                    //model.progress = ease_out_bounce(model.frames as f64 / 100.);
+                    model.progress = model.frames as f64 / 200.;
+                    if model.progress > 1. {
+                        model.progress = 1.;
+                        model.loaded = true;
+                        model.ticks = 3;
                     }
                 }
+                model
             }
             Msg::Tick => {
-                if self.loaded {
-                    self.ticks -= 1;
-                    if self.ticks == 0 {
-                        quit();
+                let mut model = Model { ..*self }; // deepy copy
+                if model.loaded {
+                    model.ticks -= 1;
+                    if model.ticks == 0 {
+                        Heartbeat::stop();
                     }
                 }
+                model
             }
-        }
+        };
+
+        model
     }
 
     fn view(&self) -> String {
@@ -64,14 +65,13 @@ impl Model {
     }
 }
 
+#[derive(Clone)]
 enum Msg {
     Frame,
     Tick,
 }
-
-fn update(msg: Msg, model: &mut Model) -> BatchCmd<Msg> {
-    model.update(msg);
-    vec![]
+fn reducer(model: &Model, msg: &Msg) -> (Model, BatchCmd<Msg>) {
+    (model.update(msg), vec![])
 }
 
 fn view(model: &Model) -> String {
@@ -121,9 +121,9 @@ fn initialize() -> (Model, Option<Cmd<Msg>>) {
 }
 
 fn main() -> Result<()> {
-    fullscreen();
-    let subs: Vec<Sub<Model, Msg>> = vec![Box::new(tick), Box::new(frame)];
-    moonlight::program(initialize, update, view, input, subs)?;
-    exit_fullscreen();
-    Ok(())
+    moonlight::Runtime::new(reducer, initialize, input, view)
+        .with_fullscreen()
+        .with_subscription(tick)
+        .with_subscription(frame)
+        .run()
 }

@@ -3,19 +3,19 @@ use std::io::Result;
 use moonlight::{
     commands,
     components::spinner::{self, SpinnerType, TickMsg},
+    heartbeat::Heartbeat,
     input::{InputEvent, Key},
     Cmd,
 };
-use moonlight::{quit, Sub};
 
 /// A simple program demonstrating the spinner component from the Moonlight
 /// component library.
 
-#[derive(Clone)]
 struct Model {
     spinner: spinner::Model,
 }
 
+#[derive(Clone)]
 enum Msg {
     SpinnerTick(TickMsg),
     Quit,
@@ -27,15 +27,19 @@ impl From<TickMsg> for Msg {
     }
 }
 
-fn update(msg: Msg, model: &mut Model) -> Vec<impl Fn() -> Msg> {
+fn reducer(model: &Model, msg: &Msg) -> (Model, Vec<impl Fn() -> Msg>) {
+    let mut model = Model {
+        spinner: model.spinner.clone(),
+    };
+
     match msg {
-        Msg::Quit => quit(),
+        Msg::Quit => Heartbeat::stop(),
         Msg::SpinnerTick(msg) => {
-            let cmds = spinner::update(msg, &mut model.spinner);
-            return commands::map_batch(cmds);
+            let cmds = spinner::reducer(&mut model.spinner, msg);
+            return (model, commands::map_batch(cmds));
         }
     }
-    vec![]
+    (model, vec![])
 }
 
 fn view(model: &Model) -> String {
@@ -57,11 +61,10 @@ fn initialize() -> (Model, Option<Cmd<Msg>>) {
     let model = Model {
         spinner: spinner::Model::with(SpinnerType::MiniDot),
     };
-    (model, Some(Box::new(|| Msg::from(spinner::tick()))))
+    let ignition = || Msg::from(spinner::tick());
+    (model, Some(Box::new(ignition)))
 }
 
 fn main() -> Result<()> {
-    let subs: Vec<Sub<Model, Msg>> = Vec::new(); // type annotation to subs
-    moonlight::program(initialize, update, view, input, subs)?;
-    Ok(())
+    moonlight::Runtime::new(reducer, initialize, input, view).run()
 }

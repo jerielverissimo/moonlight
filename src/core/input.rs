@@ -2,6 +2,8 @@ use termion::input::TermRead;
 
 use std::io::stdin;
 
+use super::channels::ChannelSender;
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum InputEvent {
     Key(Key),                 // termion type
@@ -102,7 +104,7 @@ impl From<termion::event::Key> for Key {
     }
 }
 
-pub(crate) fn receive_inputs<MSG, I>(input: I, mut input_sender: crate::ChannelSender<MSG>)
+pub(crate) fn receive_inputs<MSG, I>(input: I, mut input_sender: ChannelSender<MSG>)
 where
     I: Fn(InputEvent) -> Option<MSG> + Send + 'static,
 {

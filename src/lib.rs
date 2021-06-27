@@ -1,14 +1,10 @@
-pub mod channels;
-pub mod color;
-pub mod commands;
-pub mod components;
-pub mod input;
-pub mod program;
-pub mod renderer;
+#![feature(capture_disjoint_fields)]
+#![feature(min_type_alias_impl_trait)]
 
-pub use channels::*;
-use input::*;
-pub use program::*;
+pub mod components;
+pub mod core;
+
+pub use crate::core::*;
 
 #[cfg(test)]
 mod tests {

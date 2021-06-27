@@ -67,6 +67,7 @@ impl Spinner {
 }
 
 /// TickMsg indicates that the timer has ticked and we should render a frame.
+#[derive(Clone)]
 pub struct TickMsg {
     tag: i32,
 }
@@ -103,9 +104,9 @@ impl Model {
     }
 }
 
-// Update is the Moonlight update function. This will advance the spinner one frame
+// Reducer is the Moonlight reducer function. This will advance the spinner one frame
 // every time it's called.
-pub fn update(msg: TickMsg, model: &mut Model) -> BatchCmd<TickMsg> {
+pub fn reducer(model: &mut Model, msg: &TickMsg) -> BatchCmd<TickMsg> {
     if msg.tag > 0 && msg.tag != model.tag {
         return vec![];
     }

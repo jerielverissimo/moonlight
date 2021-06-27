@@ -8,7 +8,7 @@ const ESC: &str = "\x1B[";
 
 static mut LINES_RENDERED: i32 = 0;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum RenderMsg {
     SyncScrollArea {
         lines: Vec<String>,

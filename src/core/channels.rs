@@ -1,6 +1,6 @@
 use std::sync::mpsc::{channel, Receiver, Sender};
 
-use crate::schedule_render;
+use super::render_channel::RenderChannel;
 
 pub struct ChannelSender<MSG> {
     pub tx: Sender<MSG>,
@@ -9,7 +9,7 @@ pub struct ChannelSender<MSG> {
 impl<MSG> ChannelSender<MSG> {
     pub fn send(&mut self, msg: MSG) {
         self.tx.send(msg).ok();
-        schedule_render();
+        RenderChannel::new().next_frame();
     }
 }
 

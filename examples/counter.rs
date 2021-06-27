@@ -1,35 +1,38 @@
 use std::io::Result;
 
 use moonlight::{
+    heartbeat::Heartbeat,
     input::{InputEvent, Key},
     BatchCmd,
 };
-use moonlight::{quit, Sub};
 
 /// A simple program that show a counter
 
 /// A model can be more or less any type of data. It holds all the data for a
 /// program, so often it's a struct.
-#[derive(Clone)]
 struct Model(i32);
 
-/// Messages are events that we respond to in our Update function. This
+/// Messages are events that we respond to in our Reducer function. This
 /// particular one increment/decrement a counter
-enum Msg {
+#[derive(Clone)]
+enum Message {
     Increment,
     Decrement,
     Quit,
 }
 
-/// Update is called when messages are received. The idea is that you inspect
-/// the message and update the model.
-fn update(msg: Msg, model: &mut Model) -> BatchCmd<Msg> {
-    match msg {
-        Msg::Quit => quit(),
-        Msg::Increment => model.0 += 1,
-        Msg::Decrement => model.0 -= 1,
-    }
-    vec![]
+/// Reducer is called when messages are received. The idea is that you inspect
+/// the message and retun a the updated model.
+fn reducer(model: &Model, message: &Message) -> (Model, BatchCmd<Message>) {
+    let model = match message {
+        Message::Quit => {
+            Heartbeat::stop(); // kill runtime
+            Model(model.0)
+        }
+        Message::Increment => Model(model.0 + 1),
+        Message::Decrement => Model(model.0 - 1),
+    };
+    (model, vec![])
 }
 
 /// View take data from the model and return a string which will be rendered
@@ -40,12 +43,12 @@ fn view(model: &Model) -> String {
 
 /// Input is called when stdin input are received. The idea is that you inspect
 /// the event and returns an optional message.
-fn input(event: InputEvent) -> Option<Msg> {
+fn input(event: InputEvent) -> Option<Message> {
     match event {
         InputEvent::Key(key) => match key {
-            Key::Char('q') => Some(Msg::Quit),
-            Key::Char('k') => Some(Msg::Increment),
-            Key::Char('j') => Some(Msg::Decrement),
+            Key::Char('q') => Some(Message::Quit),
+            Key::Char('k') => Some(Message::Increment),
+            Key::Char('j') => Some(Message::Decrement),
             _ => None,
         },
         _ => None,
@@ -53,7 +56,6 @@ fn input(event: InputEvent) -> Option<Msg> {
 }
 
 fn main() -> Result<()> {
-    let subs: Vec<Sub<Model, Msg>> = Vec::new(); // type annotation to subs
     let initialize = || (Model(0), None);
-    moonlight::program(initialize, update, view, input, subs)
+    moonlight::Runtime::new(reducer, initialize, input, view).run()
 }

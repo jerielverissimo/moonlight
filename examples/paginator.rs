@@ -2,11 +2,10 @@ use std::io::Result;
 
 use moonlight::{
     components::paginator::{self, PaginatorType},
+    heartbeat::Heartbeat,
     input::{InputEvent, Key},
-    renderer::{exit_fullscreen, fullscreen},
     BatchCmd, Cmd,
 };
-use moonlight::{quit, Sub};
 
 /// A simple paginator demo with dots and arabic style
 
@@ -19,26 +18,31 @@ struct Model {
 
 /// Messages are events that we respond to in our Update function. This
 /// particular one pass input data to paginator model
+#[derive(Clone)]
 enum Msg {
     Input(Key),
     Quit,
 }
 
-/// Update is called when messages are received. The idea is that you inspect
+/// Reducer is called when messages are received. The idea is that you inspect
 /// the message and update the model.
-fn update(msg: Msg, model: &mut Model) -> BatchCmd<Msg> {
+fn reducer(model: &Model, msg: &Msg) -> (Model, BatchCmd<Msg>) {
+    let mut model = Model {
+        paginator: model.paginator.clone(),
+    };
+
     match msg {
-        Msg::Quit => quit(),
+        Msg::Quit => Heartbeat::stop(),
         Msg::Input(key) => {
             match key {
                 Key::Char('a') => model.paginator.paginator_type(PaginatorType::Arabic),
                 Key::Char('d') => model.paginator.paginator_type(PaginatorType::Dots),
                 _ => {}
             }
-            paginator::input::<Msg>(&mut model.paginator, key);
+            paginator::input::<Msg>(&mut model.paginator, *key);
         }
     }
-    vec![]
+    (model, vec![])
 }
 
 /// View take data from the model and return a string which will be rendered
@@ -66,9 +70,7 @@ fn initialize() -> (Model, Option<Cmd<Msg>>) {
 }
 
 fn main() -> Result<()> {
-    fullscreen();
-    let subs: Vec<Sub<Model, Msg>> = Vec::new(); // type annotation to subs
-    moonlight::program(initialize, update, view, input, subs)?;
-    exit_fullscreen();
-    Ok(())
+    moonlight::Runtime::new(reducer, initialize, input, view)
+        .with_fullscreen()
+        .run()
 }
