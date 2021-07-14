@@ -62,7 +62,7 @@ impl Model {
 
     pub fn set_content(&mut self, mut s: String) {
         s = s.replace("\r\n", "\n");
-        self.lines = s.split("\n").map(|s| s.to_string()).collect();
+        self.lines = s.split('\n').map(|s| s.to_string()).collect();
 
         if self.y_offset > self.len() - 1 {
             self.goto_bottom();
@@ -267,7 +267,7 @@ pub fn view(model: &Model) -> String {
 // COMMANDS
 
 pub fn sync(m: &Model) -> Option<impl Fn() -> Message> {
-    if m.lines.len() == 0 {
+    if m.lines.is_empty() {
         return None;
     }
 
@@ -282,7 +282,7 @@ pub fn sync(m: &Model) -> Option<impl Fn() -> Message> {
 }
 
 pub fn view_down(m: &Model, lines: Vec<String>) -> Option<impl Fn() -> Message> {
-    if lines.len() == 0 {
+    if lines.is_empty() {
         return None;
     }
 
@@ -294,7 +294,7 @@ pub fn view_down(m: &Model, lines: Vec<String>) -> Option<impl Fn() -> Message> 
 }
 
 pub fn view_up(m: &Model, lines: Vec<String>) -> Option<impl Fn() -> Message> {
-    if lines.len() == 0 {
+    if lines.is_empty() {
         return None;
     }
 

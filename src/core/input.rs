@@ -109,13 +109,9 @@ where
     I: Fn(InputEvent) -> Option<MSG> + Send + 'static,
 {
     let stdin = stdin();
-    for c in stdin.keys() {
-        match c.unwrap() {
-            event => {
-                if let Some(msg) = input(InputEvent::Key(event.into())) {
-                    input_sender.send(msg);
-                }
-            }
+    for key in stdin.keys().flatten() {
+        if let Some(msg) = input(InputEvent::Key(key.into())) {
+            input_sender.send(msg);
         }
     }
 }

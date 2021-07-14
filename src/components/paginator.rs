@@ -14,8 +14,8 @@ pub enum PaginatorType {
     Dots,
 }
 
-const BRIGHT_GRAY: &'static str = "#DDDADA";
-const DARK_GRAY: &'static str = "#847A85";
+const BRIGHT_GRAY: &str = "#DDDADA";
+const DARK_GRAY: &str = "#847A85";
 
 /// Model is the Moonlight model for this user interface
 #[derive(Clone)]
@@ -30,6 +30,12 @@ pub struct Model {
     use_up_down_keys: bool,
     use_h_l_keys: bool,
     use_j_k_keys: bool,
+}
+
+impl Default for Model {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Model {

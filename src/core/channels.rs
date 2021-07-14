@@ -21,12 +21,12 @@ pub struct Channel<MSG> {
 impl<MSG> Channel<MSG> {
     pub(crate) fn new() -> Self {
         let (tx, rx) = channel();
-        return Channel { tx, rx };
+        Channel { tx, rx }
     }
 
     pub fn sender(&mut self) -> ChannelSender<MSG> {
-        return ChannelSender {
+        ChannelSender {
             tx: self.tx.clone(),
-        };
+        }
     }
 }

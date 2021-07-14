@@ -1,6 +1,6 @@
-use std::{sync::Arc, thread};
+use std::{thread};
 
-use generational_arena::{Arena, Index};
+use generational_arena::{Arena};
 
 use crate::{BatchCmd, Channel, ChannelSender};
 

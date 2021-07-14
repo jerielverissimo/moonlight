@@ -39,7 +39,7 @@ fn reducer(model: Model, message: Message) -> (Model, BatchCmd<Message>) {
 /// View take data from the model and return a string which will be rendered
 /// to the terminal.
 fn view(model: &Model) -> String {
-    String::from(model.0.to_string())
+    model.0.to_string()
 }
 
 /// Input is called when stdin input are received. The idea is that you inspect

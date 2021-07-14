@@ -46,9 +46,7 @@ fn view(model: &Model) -> String {
 /// the event and returns an optional message.
 fn input(event: InputEvent) -> Option<Msg> {
     match event {
-        InputEvent::Key(key) => match key {
-            _ => Some(Msg::Key),
-        },
+        InputEvent::Key(key) => Some(Msg::Key),
         _ => None,
     }
 }

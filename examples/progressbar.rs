@@ -6,13 +6,13 @@ use moonlight::{input::InputEvent, BatchCmd, Cmd};
 
 pub fn ease_out_bounce(t: f64) -> f64 {
     if t < 4. / 11.0 {
-        return (121. * t * t) / 16.0;
+        (121. * t * t) / 16.0
     } else if t < 8. / 11.0 {
-        return (363. / 40.0 * t * t) - (99. / 10.0 * t) + 17. / 5.0;
+        (363. / 40.0 * t * t) - (99. / 10.0 * t) + 17. / 5.0
     } else if t < 9. / 10.0 {
-        return (4356. / 361.0 * t * t) - (35442. / 1805.0 * t) + 16061. / 1805.0;
+        (4356. / 361.0 * t * t) - (35442. / 1805.0 * t) + 16061. / 1805.0
     } else {
-        return (54. / 5.0 * t * t) - (513. / 25.0 * t) + 268. / 25.0;
+        (54. / 5.0 * t * t) - (513. / 25.0 * t) + 268. / 25.0
     }
 }
 
@@ -26,7 +26,9 @@ struct Model {
 
 impl Model {
     fn update(self, msg: Msg) -> Self {
-        let model = match msg {
+        
+
+        match msg {
             Msg::Frame => {
                 let mut model = Model { ..self }; // deep copy
                 if !model.loaded {
@@ -51,9 +53,7 @@ impl Model {
                 }
                 model
             }
-        };
-
-        model
+        }
     }
 
     fn view(&self) -> String {
@@ -80,9 +80,7 @@ fn view(model: &Model) -> String {
 }
 
 fn input(event: InputEvent) -> Option<Msg> {
-    match event {
-        _ => None,
-    }
+    None
 }
 
 // Progressbar widget
