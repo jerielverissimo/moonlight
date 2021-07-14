@@ -8,7 +8,7 @@ const ESC: &str = "\x1B[";
 
 static mut LINES_RENDERED: i32 = 0;
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum RenderMsg {
     SyncScrollArea {
         lines: Vec<String>,
@@ -99,6 +99,11 @@ impl Renderer {
         }
         Ok(())
     }
+}
+
+// invert inverts the foreground and background colors of a given string
+pub fn invert(s: String) -> String {
+    ESC.to_owned() + "7m" + &s + ESC + "0m"
 }
 
 // fullscreen switches to the altscreen and clears the terminal. The former

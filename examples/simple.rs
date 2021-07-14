@@ -6,6 +6,7 @@ use moonlight::{heartbeat::Heartbeat, input::InputEvent, BatchCmd};
 
 /// A model can be more or less any type of data. It holds all the data for a
 /// program, so often it's a struct.
+#[derive(Clone)]
 struct Model(i32);
 
 /// Messages are events that we respond to in our Reducer function. This
@@ -18,7 +19,7 @@ enum Msg {
 
 /// Reducer is called when messages are received. The idea is that you inspect
 /// the message and update the model.
-fn reducer(model: &Model, msg: &Msg) -> (Model, BatchCmd<Msg>) {
+fn reducer(model: Model, msg: Msg) -> (Model, BatchCmd<Msg>) {
     let mut model = Model(model.0);
     match msg {
         Msg::Key => Heartbeat::stop(),

@@ -26,11 +26,11 @@ pub struct Runtime<Model: Sync, Message, Input, View, Reducer> {
 
 impl<Model, Message, Input, View, Reducer, Command> Runtime<Model, Message, Input, View, Reducer>
 where
-    Model: Send + Sync + 'static,
+    Model: Clone + Send + Sync + 'static,
     Message: 'static + Send + Sync + Clone,
     Input: Fn(InputEvent) -> Option<Message> + Send + Sync + Copy + 'static,
     View: 'static + Fn(&Model) -> String + Send,
-    Reducer: Fn(&Model, &Message) -> (Model, Vec<Command>),
+    Reducer: Fn(Model, Message) -> (Model, Vec<Command>),
     Command: Fn() -> Message + Send + 'static,
 {
     pub fn new(
@@ -128,13 +128,13 @@ where
         {
             // render callback
             let renderer = renderer.clone();
-            self.store.react(Box::new(move |model| {
+            self.store.react(move |model| {
                 let next_frame = (self.view)(model);
                 renderer.borrow_mut().render(&next_frame);
-            }));
+            });
         }
 
-        self.store.dispatch_subscriptions(&mut channel);
+        self.store = self.store.dispatch_subscriptions(&mut channel);
 
         // main loop, update states when MSG is received,
         // draw when ShouldRender is received

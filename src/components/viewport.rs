@@ -4,7 +4,7 @@ use crate::{
     renderer::{scroll_down, scroll_up, sync_scroll_area, RenderMsg},
 };
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Message {
     Input(Key),
     SyncScrollArea(RenderMsg),
@@ -219,7 +219,7 @@ pub fn input(event: Key) -> Option<Message> {
     Some(Message::Input(event))
 }
 
-pub fn update(msg: &Message, model: &mut Model) {
+pub fn update(msg: Message, model: &mut Model) {
     match msg {
         Message::Input(key) => match key {
             Key::PageDown | Key::Char(' ') | Key::Char('f') => {

@@ -8,7 +8,7 @@ use crate::{color::convert_hex_rgb, input::Key};
 /// rendering pagination status.
 
 /// PaginatorType specifies the way we render pagination
-#[derive(Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum PaginatorType {
     Arabic,
     Dots,

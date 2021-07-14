@@ -16,6 +16,7 @@ pub fn ease_out_bounce(t: f64) -> f64 {
     }
 }
 
+#[derive(Clone)]
 struct Model {
     loaded: bool,
     frames: i32,
@@ -24,10 +25,10 @@ struct Model {
 }
 
 impl Model {
-    fn update(&self, msg: &Msg) -> Self {
+    fn update(self, msg: Msg) -> Self {
         let model = match msg {
             Msg::Frame => {
-                let mut model = Model { ..*self }; // deep copy
+                let mut model = Model { ..self }; // deep copy
                 if !model.loaded {
                     model.frames += 1;
                     //model.progress = ease_out_bounce(model.frames as f64 / 100.);
@@ -41,7 +42,7 @@ impl Model {
                 model
             }
             Msg::Tick => {
-                let mut model = Model { ..*self }; // deepy copy
+                let mut model = Model { ..self }; // deepy copy
                 if model.loaded {
                     model.ticks -= 1;
                     if model.ticks == 0 {
@@ -70,7 +71,7 @@ enum Msg {
     Frame,
     Tick,
 }
-fn reducer(model: &Model, msg: &Msg) -> (Model, BatchCmd<Msg>) {
+fn reducer(model: Model, msg: Msg) -> (Model, BatchCmd<Msg>) {
     (model.update(msg), vec![])
 }
 

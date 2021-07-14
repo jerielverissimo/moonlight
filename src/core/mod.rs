@@ -9,5 +9,6 @@ pub mod runtime;
 pub mod store;
 
 pub use channels::*;
+pub use color::*;
 pub use input::*;
 pub use runtime::*;

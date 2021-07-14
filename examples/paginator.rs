@@ -26,10 +26,8 @@ enum Msg {
 
 /// Reducer is called when messages are received. The idea is that you inspect
 /// the message and update the model.
-fn reducer(model: &Model, msg: &Msg) -> (Model, BatchCmd<Msg>) {
-    let mut model = Model {
-        paginator: model.paginator.clone(),
-    };
+fn reducer(model: Model, msg: Msg) -> (Model, BatchCmd<Msg>) {
+    let mut model = Model { ..model };
 
     match msg {
         Msg::Quit => Heartbeat::stop(),
@@ -39,7 +37,7 @@ fn reducer(model: &Model, msg: &Msg) -> (Model, BatchCmd<Msg>) {
                 Key::Char('d') => model.paginator.paginator_type(PaginatorType::Dots),
                 _ => {}
             }
-            paginator::input::<Msg>(&mut model.paginator, *key);
+            paginator::input::<Msg>(&mut model.paginator, key);
         }
     }
     (model, vec![])

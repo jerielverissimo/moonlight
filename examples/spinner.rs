@@ -11,6 +11,7 @@ use moonlight::{
 /// A simple program demonstrating the spinner component from the Moonlight
 /// component library.
 
+#[derive(Clone)]
 struct Model {
     spinner: spinner::Model,
 }
@@ -27,10 +28,8 @@ impl From<TickMsg> for Msg {
     }
 }
 
-fn reducer(model: &Model, msg: &Msg) -> (Model, Vec<impl Fn() -> Msg>) {
-    let mut model = Model {
-        spinner: model.spinner.clone(),
-    };
+fn reducer(model: Model, msg: Msg) -> (Model, Vec<impl Fn() -> Msg>) {
+    let mut model = Model { ..model };
 
     match msg {
         Msg::Quit => Heartbeat::stop(),

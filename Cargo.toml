@@ -12,6 +12,8 @@ readme = "README.md"
 
 [dependencies]
 addy = "0.1.1"
+bitflags = "1.2.1"
 csscolorparser = "0.4.0"
+generational-arena = "0.2.8"
 termion = "1.5.6"
 unicode-width = "0.1.8"

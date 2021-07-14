@@ -3,6 +3,7 @@ use std::time::Duration;
 use crate::commands;
 use crate::BatchCmd;
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum SpinnerType {
     Line,
     Dot,
@@ -106,7 +107,7 @@ impl Model {
 
 // Reducer is the Moonlight reducer function. This will advance the spinner one frame
 // every time it's called.
-pub fn reducer(model: &mut Model, msg: &TickMsg) -> BatchCmd<TickMsg> {
+pub fn reducer(model: &mut Model, msg: TickMsg) -> BatchCmd<TickMsg> {
     if msg.tag > 0 && msg.tag != model.tag {
         return vec![];
     }

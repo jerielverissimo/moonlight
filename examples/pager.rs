@@ -9,9 +9,6 @@ use moonlight::{
 };
 use unicode_width::UnicodeWidthStr;
 
-/// A simple program demonstrating the spinner component from the Moonlight
-/// component library.
-
 const HEADER_HEIGHT: isize = 3;
 const FOOTER_HEIGHT: isize = 3;
 
@@ -37,16 +34,11 @@ impl From<viewport::Message> for Msg {
     }
 }
 
-fn reducer(model: &Model, msg: &Msg) -> (Model, BatchCmd<Msg>) {
-    let mut model = Model {
-        viewport: model.viewport.clone(),
-        content: model.content.clone(),
-        ..*model
-    };
+fn reducer(model: Model, msg: Msg) -> (Model, BatchCmd<Msg>) {
+    let mut model = Model { ..model };
     match msg {
         Msg::Quit => Heartbeat::stop(),
         Msg::WindowResized(w, h) => {
-            let (w, h) = (*w, *h);
             let (w, h) = (w as isize, h as isize);
             let vertical_margins = HEADER_HEIGHT + FOOTER_HEIGHT;
 
